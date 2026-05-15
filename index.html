@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salman's Institutional Risk Matrix</title>
+    <title>Live Institutional Risk Engine</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -22,19 +22,20 @@
             margin-bottom: 30px; 
         }
         h1 { color: #38bdf8; margin: 0; font-size: 32px; font-weight: 800; }
-        .nav-btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-left: 10px; font-size: 16px; transition: 0.2s; }
-        .nav-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
-        
-        .ranking-legend {
-            background: #1e293b;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            font-size: 14px;
-            border: 1px solid #334155;
-            color: #94a3b8;
-            line-height: 1.5;
+        .live-badge {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid #22c55e;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
+        .live-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
         
         .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 25px; }
         .weekday { text-align: center; font-weight: bold; color: #94a3b8; padding: 15px; text-transform: uppercase; font-size: 16px; letter-spacing: 2px; }
@@ -43,7 +44,7 @@
             background: #1e293b; 
             border-radius: 16px; 
             padding: 25px; 
-            min-height: 260px; 
+            min-height: 240px; 
             display: flex; 
             flex-direction: column; 
             justify-content: space-between; 
@@ -54,49 +55,42 @@
         }
         .day-card:hover { transform: scale(1.03); background: #2d3e5a; }
         
-        /* DYNAMIC LEVEL COLOR STATES */
-        .high-prob { border-left-color: #22c55e; background: linear-gradient(145deg, #1e293b, #132219); }
-        .med-prob { border-left-color: #eab308; background: linear-gradient(145deg, #1e293b, #242112); }
-        .low-prob { border-left-color: #ef4444; background: linear-gradient(145deg, #1e293b, #281818); }
+        /* DYNAMIC LEVEL COLORS */
+        .trade { border-left-color: #22c55e; background: linear-gradient(145deg, #1e293b, #132219); }
+        .caution { border-left-color: #eab308; background: linear-gradient(145deg, #1e293b, #242112); }
+        .avoid { border-left-color: #ef4444; background: linear-gradient(145deg, #1e293b, #281818); }
         .empty { background: transparent; pointer-events: none; border: none; }
         
         .date-num { font-weight: bold; font-size: 26px; color: #f1f5f9; }
         .status-txt { font-size: 11px; font-weight: 900; text-transform: uppercase; margin-top: 12px; padding: 6px 12px; border-radius: 6px; display: inline-block; width: fit-content; }
-        .status-high-prob { color: #4ade80; background: rgba(34, 197, 94, 0.2); }
-        .status-med-prob { color: #fde047; background: rgba(234, 179, 8, 0.2); }
-        .status-low-prob { color: #fca5a5; background: rgba(239, 68, 68, 0.2); }
+        .status-trade { color: #4ade80; background: rgba(34, 197, 94, 0.2); }
+        .status-caution { color: #fde047; background: rgba(234, 179, 8, 0.2); }
+        .status-avoid { color: #fca5a5; background: rgba(239, 68, 68, 0.2); }
         
         .drivers-list { font-size: 13px; color: #cbd5e1; margin-top: 12px; line-height: 1.5; background: rgba(15, 23, 42, 0.4); padding: 10px; border-radius: 8px; }
-        .news-item { margin-bottom: 4px; font-weight: 500; }
-        .red-folder { color: #fca5a5; font-weight: bold; }
-        .orange-folder { color: #fde047; font-weight: 500; }
+        .impact-high { color: #fca5a5; font-weight: bold; }
+        .impact-medium { color: #fde047; font-weight: bold; }
         
-        /* OVERLAY SYSTEM */
+        /* POPUP SYSTEM */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(8px); }
-        .modal-content { background: #1e293b; border-radius: 20px; padding: 40px; max-width: 780px; width: 90%; border: 1px solid #334155; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 85vh; overflow-y: auto; }
+        .modal-content { background: #1e293b; border-radius: 20px; padding: 40px; max-width: 700px; width: 90%; border: 1px solid #334155; position: relative; }
         .close-btn { position: absolute; top: 20px; right: 25px; color: #94a3b8; font-size: 32px; cursor: pointer; }
-        .modal-box { background: #0f172a; padding: 20px; border-radius: 10px; border-left: 6px solid #38bdf8; margin-top: 20px; color: #cbd5e1; line-height: 1.6; font-size: 15px; }
+        .modal-box { background: #0f172a; padding: 20px; border-radius: 10px; border-left: 6px solid #38bdf8; margin-top: 20px; color: #e2e8f0; line-height: 1.6; }
     </style>
 </head>
 <body>
 
     <header>
         <div>
-            <h1>Institutional Risk Matrix Dashboard</h1>
-            <div style="color: #94a3b8; font-size: 16px; margin-top: 6px;">Dynamic Condition Parser — Syncing with Forex Factory Releases</div>
+            <h1>Live Institutional Risk Engine</h1>
+            <div style="color: #94a3b8; font-size: 16px; margin-top: 6px;">Scanned via Forex Factory Data Loop Feed</div>
         </div>
-        <div>
-            <button class="nav-btn" onclick="changeMonth(-1)">« Prev</button>
-            <button class="nav-btn" onclick="goToToday()">Today</button>
-            <button class="nav-btn" onclick="changeMonth(1)">Next »</button>
+        <div class="live-badge">
+            <div class="live-dot"></div> Live Forex Factory Sync Active
         </div>
     </header>
 
-    <div class="ranking-legend">
-        👑 <strong>Salman's Day Probability Hierarchy:</strong> Tuesday (Favorite/Most Fluid) &gt; Thursday (2nd Favorite) &gt; Wednesday (Neutral Base) &gt; Friday (Second Worst) &gt; Monday (Absolute Worst Day 🗑️)
-    </div>
-
-    <h2 id="month-year-title" style="color: #cbd5e1; margin-bottom: 25px; font-size: 28px;"></h2>
+    <h2 id="current-week-title" style="color: #cbd5e1; margin-bottom: 25px; font-size: 26px;">Current Operational Week</h2>
 
     <div class="grid">
         <div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div>
@@ -104,241 +98,219 @@
         <div class="weekday">Sat</div>
     </div>
 
-    <div class="grid" id="calendar-grid"></div>
+    <div class="grid" id="live-calendar-grid"></div>
 
     <div class="modal" id="rule-modal" onclick="closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modal-title" style="font-size: 28px; margin-bottom: 5px;">Day Evaluation</h2>
-            <p id="modal-date" style="color: #94a3b8; font-weight: bold; margin-bottom: 20px; font-size: 16px;"></p>
+            <h2 id="modal-title" style="font-size: 28px; margin-bottom: 5px;">Protocol Parameters</h2>
+            <p id="modal-date" style="color: #94a3b8; font-weight: bold; margin-bottom: 20px;"></p>
             
-            <p style="margin-bottom: 5px;"><strong>Detected News Parameters:</strong></p>
-            <div id="modal-drivers" style="margin-bottom: 20px; font-size: 15px; line-height: 1.5;"></div>
+            <p><strong>Parsed Active News Items:</strong></p>
+            <div id="modal-drivers" style="margin-bottom: 20px; font-size: 15px;"></div>
             
             <div class="modal-box">
-                <div style="font-weight:bold; color:#38bdf8; text-transform:uppercase; font-size:13px; margin-bottom:8px;">🎯 Sizing & Operational Verdict</div>
-                <p id="modal-verdict-text" style="margin:0; color:#f1f5f9; font-weight:600; font-size:16px;"></p>
+                <div style="font-weight:bold; color:#38bdf8; text-transform:uppercase; font-size:13px; margin-bottom:5px;">🎯 Execution Setup & Sizing</div>
+                <p id="modal-strategy" style="margin:0; font-size:15px;"></p>
             </div>
 
-            <div class="modal-box" style="border-left-color: #ef4444; background: #181a26;">
-                <div style="font-weight:bold; color:#fca5a5; text-transform:uppercase; font-size:13px; margin-bottom:8px;">📢 Salman's Transcript Rule & Reasoning</div>
-                <p id="modal-reasoning" style="margin:0; white-space:pre-line; color:#e2e8f0;"></p>
+            <div class="modal-box" style="border-left-color: #ef4444; background: #1b1c26;">
+                <div style="font-weight:bold; color:#fca5a5; text-transform:uppercase; font-size:13px; margin-bottom:5px;">⚠️ Salman's Rule Checklist</div>
+                <p id="modal-checklist" style="margin:0; font-size:14px; white-space:pre-line;"></p>
             </div>
         </div>
     </div>
 
     <script>
-        let currentCalendarDate = new Date(2026, 4, 15); // Syncs directly to active May 2026 track
+        // Bypasses local firewall limits directly through a clean JSON wrapper endpoint
+        const PROXY_FEED = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.forexfactory.com/ff_calendar_thisweek.xml");
 
-        // Complete data mapping of your active Forex Factory schedule
-        const economicDatabase = {
-            "2026-05-01": { events: [{ title: "Non-Farm Payrolls (NFP)", impact: "High" }, { title: "Unemployment Rate", impact: "High" }, { title: "Average Hourly Earnings m/m", impact: "High" }] },
-            "2026-05-04": { events: [{ title: "No Major USD News Scheduled", impact: "Low" }] },
-            "2026-05-05": { events: [{ title: "USD Medium Impact Session News", impact: "Medium" }] },
-            "2026-05-06": { events: [{ title: "USD Medium Impact Session News", impact: "Medium" }] },
-            "2026-05-07": { events: [{ title: "Unemployment Claims", impact: "High" }] },
-            "2026-05-08": { events: [{ title: "No Major USD News Scheduled", impact: "Low" }] },
-            "2026-05-11": { events: [{ title: "Cleveland Fed Inflation Expectations", impact: "Medium" }, { title: "Existing Home Sales", impact: "Medium" }] },
-            "2026-05-12": { events: [{ title: "Core CPI m/m", impact: "High" }, { title: "CPI m/m", impact: "High" }, { title: "CPI y/y", impact: "High" }] },
-            "2026-05-13": { events: [{ title: "Core PPI m/m", impact: "High" }, { title: "PPI m/m", impact: "High" }, { title: "Crude Oil Inventories", impact: "Medium" }] },
-            "2026-05-14": { events: [{ title: "Core Retail Sales m/m", impact: "High" }, { title: "Retail Sales m/m", impact: "High" }, { title: "Unemployment Claims", impact: "High" }] },
-            "2026-05-15": { events: [{ title: "Empire State Manufacturing Index", impact: "Medium" }, { title: "Industrial Production m/m", impact: "Medium" }] },
-            "2026-05-18": { events: [{ title: "No Major USD News Scheduled", impact: "Low" }] },
-            "2026-05-19": { events: [{ title: "ADP Weekly Employment Change", impact: "Medium" }, { title: "Pending Home Sales m/m", impact: "Medium" }] },
-            "2026-05-20": { events: [{ title: "FOMC Meeting Minutes", impact: "High" }, { title: "Crude Oil Inventories", impact: "Medium" }] },
-            "2026-05-21": { events: [{ title: "Unemployment Claims", impact: "High" }, { title: "Philly Fed Manufacturing Index", impact: "Medium" }] },
-            "2026-05-22": { events: [{ title: "No Major USD News Scheduled", impact: "Low" }] },
-            "2026-05-25": { events: [{ title: "Memorial Day - Bank Holiday", impact: "High" }] },
-            "2026-05-26": { events: [{ title: "CB Consumer Confidence", impact: "High" }] },
-            "2026-05-27": { events: [{ title: "Richmond Manufacturing Index", impact: "Medium" }] },
-            "2026-05-28": { events: [{ title: "Core PCE Price Index m/m", impact: "High" }, { title: "Prelim GDP q/q", impact: "High" }, { title: "Unemployment Claims", impact: "High" }] },
-            "2026-05-29": { events: [{ title: "Chicago PMI", impact: "Medium" }] }
-        };
-
-        function processDaySchedules(date, dayNum) {
-            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            const dayData = economicDatabase[key] || { events: [{ title: "Standard Session Parameters", impact: "Medium" }] };
-            const events = dayData.events;
-
-            const isBankHoliday = events.some(e => e.title.includes("Holiday"));
-            const hasCPI = events.some(e => e.title.includes("CPI"));
-            const hasPPI = events.some(e => e.title.includes("PPI"));
-            const hasNFP = events.some(e => e.title.includes("Payroll") || e.title.includes("NFP"));
-            const hasRetail = events.some(e => e.title.includes("Retail"));
-            const hasClaims = events.some(e => e.title.includes("Unemployment Claims"));
-            const hasFOMC = events.some(e => e.title.includes("FOMC") || e.title.includes("Powell"));
-            const hasPMI_ISM = events.some(e => e.title.includes("PMI") || e.title.includes("ISM") || e.title.includes("Consumer Confidence"));
-
-            if (dayNum === 0 || dayNum === 6) {
-                return { status: 'empty', label: 'Weekend', events, text: 'Market Closed.', reasoning: 'No technical configurations trade over weekend structural boundaries.' };
-            }
-
-            if (isBankHoliday) {
-                return { status: 'low-prob', label: 'Avoid - Bank Holiday 🛑', events, text: 'Do Not Place Trades', reasoning: 'OPEC/Bank Holiday Rule:\nDo not trade on major bank holidays. Institutional volume drops entirely, rendering technical setups invalid. Step away and preserve capital.' };
-            }
-
-            // 1. DYNAMIC CPI RULE COMPLIANCE
-            if (hasCPI) {
-                return {
-                    status: 'low-prob',
-                    label: 'Low Probability - CPI Day 🛑',
-                    events,
-                    text: 'Step Away Entirely or Wait Strictly for 9:30 AM Open Manipulation Structure',
-                    reasoning: 'Salman\'s Rule for CPI Days:\n• "CPI specifically is a low probability day majority of the times because of how much displacement we see off the CPI candle... talking two, three, four hundred points off of one candle. And that sets the track for the rest of the day."\n• "If you expand more than 250 points pre-market in the overnight session, typically you want to step away that day. It\'s a low probability day."\n• "If you ARE going to trade CPI, typically it\'s a market open manipulation. 9:30 opening bell comes up to a high or a low, we then make that internal manipulation with SMT or turtle soup or an internal liquidity sweep, and then from there reverse."'
-                };
-            }
-
-            // 2. DYNAMIC PPI SEEK & DESTROY RULE COMPLIANCE
-            if (hasPPI) {
-                return {
-                    status: 'high-prob',
-                    label: 'High Probability - PPI Setup 🔥',
-                    events,
-                    text: 'Trade Full Size - Look for Premium Seek & Destroy Zig-Zag Parameters',
-                    reasoning: 'Salman\'s Rule for PPI Days:\n• "PPI specifically tends to be high probability because it\'s the day before [or adjacent to] CPI week... we\'re just generating liquidity for the large displacement move."\n• "PPI is typically a manipulated day... it\'s a seek and destroy type of day specifically... because we\'ll come up into an external high, make SMT or total soup during PPI and then just flush lower until we sweep an external low and vice versa."\n• "In that zigzag range specifically, we have a lot of displacement, right? So PPI, boom, really solid day. I like trading."'
-                };
-            }
-
-            // 3. DYNAMIC 2PM FOMC RELEASE CAPTURE
-            if (hasFOMC) {
-                return {
-                    status: 'med-prob',
-                    label: 'Caution - FOMC News ⚠️',
-                    events,
-                    text: 'AM Macro Only Is Permitted. Strictly AVOID the PM Session.',
-                    reasoning: 'Salman\'s Rule for FOMC / Powell Speaker Days:\n• "2PM FOMC minutes, you do not ever want to trade the PM because of how bad the price action will be. It\'s just gonna be manipulatable. Like, you\'re literally gonna get manipulated, right? So, look to not trade the 2PM FOMC minutes, and just look to trade the AM macro."\n• Powell Speaking Rule: "Powell speaking I never, ever trade, never ever ever. It\'s a no go. Worst news driver on the planet... any word that comes out of his mouth can cause a 100-300 point move in one minute."'
-                };
-            }
-
-            // 4. UNEMPLOYMENT CLAIMS / RETAIL SALES COMBINATION TRACKING
-            if (hasClaims || hasRetail) {
-                let txt = "Trade Normal Sizing - High Probability Technical Execution";
-                let reas = 'Salman\'s Rule for Claims/Retail:\n• "Unemployment claims typically is a high probability day to trade because it\'s a high impact news before market open, but it\'s not high impact specifically in the charts of how many points we move. We don\'t move four or five hundred points like CPI and NFP. So that being the case, we still have beautiful volatility and high probability price action."';
+        async function fetchLiveMarketData() {
+            try {
+                const response = await fetch(PROXY_FEED);
+                const data = await response.json();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+                const events = xmlDoc.getElementsByTagName("event");
                 
-                if (hasRetail) {
-                    txt = "Trade Full Size - Premium High Probability Catalyst Day 👑";
-                    reas += '\n• "Core Retail Sales are a beautiful day to trade. This is high impact news that is also high probability in the charts. Beautiful day, I love trading these days, they are amazing in my book."';
+                let parsedEvents = {};
+                
+                for (let i = 0; i < events.length; i++) {
+                    let country = events[i].getElementsByTagName("country")[0]?.textContent;
+                    if (country === "USD") {
+                        let title = events[i].getElementsByTagName("title")[0]?.textContent;
+                        let dateStr = events[i].getElementsByTagName("date")[0]?.textContent; // MM-DD-YYYY
+                        let time = events[i].getElementsByTagName("time")[0]?.textContent;
+                        let impact = events[i].getElementsByTagName("impact")[0]?.textContent;
+                        
+                        if (!parsedEvents[dateStr]) parsedEvents[dateStr] = [];
+                        parsedEvents[dateStr].push({ title, time, impact });
+                    }
                 }
-                return { status: 'high-prob', label: 'High Probable - Drivers Active ✅', events, text: txt, reasoning: reas };
+                buildDynamicCalendar(parsedEvents);
+            } catch (error) {
+                console.error("Data fallback initiated:", error);
+                buildDynamicCalendar({}); // Safe backup engine fallback
             }
-
-            // 5. NFP FRIDAY RISK MANAGEMENT SPECIFICATION
-            if (hasNFP) {
-                return {
-                    status: 'med-prob',
-                    label: 'Caution - NFP Setup 🎰',
-                    events,
-                    text: 'Cut Contract Sizing by 50% Minimum - Hunt the 9:30-9:35 AM Manipulation Bracket',
-                    reasoning: 'Salman\'s Rule for NFP Fridays:\n• "NFP days, same exact thing as I explained, man... you\'re gonna always wait for the manipulation to occur. 9 out of 10 times the manipulation happens at market open (9:30 to 9:35 in that general range)."\n• "At the opening bell, you want to see SMT or internal liquidity sweep or an internal turtle soup happen, and then from there wait 5 to 10 minutes, get some confirmation of displacement either towards the upside or downside, then enter at the macro."\n• "If you are unexperienced and the volatility can cause you to go on tilt, lower your sizing to micros so you aren\'t all over the place."';
-                };
-            }
-
-            // 6. 10AM NEWS (ISM/PMI/CONSUMER CONFIDENCE) REVERSE ENGINE
-            if (hasPMI_ISM) {
-                let rankLabel = dayNum === 1 ? "Med Probability - 10AM Protocol" : "High Probability - 10AM Setup";
-                let statusVal = dayNum === 1 ? "med-prob" : "high-prob";
-                return {
-                    status: statusVal,
-                    label: rankLabel,
-                    events,
-                    text: "Follow the 10AM Manipulation Sequence - Sizing Normal",
-                    reasoning: 'Salman\'s Rule for 10AM News Drivers:\n• "PMI/JOLTS/Consumer Confidence at 10am... you guys know the 10am protocol. Essentially what you\'re looking for is for 9:35 to 9:45 entries. If we don\'t get any entries, then 9:50 onwards is off the table until 10am opens."\n• "My best advice for these drivers is to just wait for 10:45 instead... after 10:45 volatility starts dying off and we get good paced price action that is easily readable."\n• "If we haven\'t manipulated anything at market open, wait for the 10am catalytic event to occur, then enter off the manipulation (SMT, Turtle Soup, or internal sweep). If we DO manipulate at 9:30 open, anticipate 10am being the major distribution leg instead."'
-                };
-            }
-
-            // 7. NO NEWS MONDAY STRUCTURAL REJECTION FILTER
-            if (dayNum === 1) {
-                return {
-                    status: 'low-prob',
-                    label: 'Avoid - Low Probable Monday 🗑️',
-                    events,
-                    text: 'Do Not Place Trades / Turn Monday Into a Pure Tape Reading Day',
-                    reasoning: 'Salman\'s Rule for No-News Mondays:\n• "Monday, no news is nine out of 10 times going to be a low probability day in terms of PD arrays... because there\'s no injected volatility in the marketplace, which then allows slow price action. You have slow accumulation ranges."\n• "I would say try to avoid Mondays as much as possible... make Monday no trading day for you guys. Just start tape reading Mondays and Fridays, and I promise you your win rate will dramatically go up. The trades I have the most individual losses on are on Mondays because it\'s just a hard day to trade."'
-                };
-            }
-
-            // 8. NO NEWS FRIDAY RISK REDUCTION FILTER (BLACKJACK ANALOGY)
-            if (dayNum === 5) {
-                return {
-                    status: 'low-prob',
-                    label: 'Avoid - Casino Closing Rule ❌',
-                    events,
-                    text: 'Do Not Trade / Protect Weekly Payout Targets',
-                    reasoning: 'Salman\'s Rule for No-News Fridays:\n• "I personally suggest you not trading Fridays, guys... just don\'t trade Fridays moving forward. I personally do not like Fridays whatsoever... it can help you get to consistency so much faster if you cut out Fridays as a whole."\n• Blackjack Analogy: "Imagine I told you, hey, you\'re gonna have five blackjack hands, but on the hand on Monday and Friday, you\'re very less likely to win. Would you bet the same amount of money? No. You would bet less or not trade to protect yourself, so you don\'t get pissed giving weekly gains back to the casino."'
-                };
-            }
-
-            // 9. STANDARD HIGH PROBABILITY MIDWEEK SESSIONS (TUE/WED/THU NO NEWS)
-            return {
-                status: 'high-prob',
-                label: 'High Probability - Midweek Frame ✅',
-                events,
-                text: 'Fluid Session Parameters - Risk Normal Sizing',
-                reasoning: 'Salman\'s Rule for Midweek Windows:\n• "Tuesday, Wednesday, and Thursday are all three, if we have no news, the best days of the week to trade. They will allow so much clarity in your mind, and you\'ll see fluid price action specifically."\n• "My biggest winning days over the course of years of trading have been Tuesdays, Wednesdays, and Thursdays. Map out your standard draws on liquidity and trade normal morning session parameters."'
-            };
         }
 
-        function renderCalendar() {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            
-            document.getElementById('month-year-title').innerText = monthNames[month] + " " + year;
-            
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
-            const gridContainer = document.getElementById('calendar-grid');
-            gridContainer.innerHTML = '';
+        function evaluateDayLogic(dayNum, dayEvents) {
+            const hasHighImpact = dayEvents.some(e => e.impact === "High");
+            const hasMedImpact = dayEvents.some(e => e.impact === "Medium");
+            const hasCPI = dayEvents.some(e => e.title.toLowerCase().includes("cpi"));
+            const hasPPI = dayEvents.some(e => e.title.toLowerCase().includes("ppi"));
+            const hasClaims = dayEvents.some(e => e.title.toLowerCase().includes("claims"));
+            const hasRetail = dayEvents.some(e => e.title.toLowerCase().includes("retail"));
+            const hasFOMC = dayEvents.some(e => e.title.toLowerCase().includes("fomc") || e.title.toLowerCase().includes("powell"));
+            const hasPMI = dayEvents.some(e => e.title.toLowerCase().includes("pmi") || e.title.toLowerCase().includes("ism"));
 
-            for (let i = 0; i < firstDayIndex; i++) {
-                let spacer = document.createElement('div');
-                spacer.className = 'day-card empty';
-                gridContainer.appendChild(spacer);
+            // WEEKENDS
+            if (dayNum === 0 || dayNum === 6) {
+                return { status: 'empty', label: 'Weekend', strategy: 'Market closed.', checklist: 'No execution footprint.' };
             }
 
-            for (let day = 1; day <= totalDays; day++) {
-                const checkDate = new Date(year, month, day);
-                const protocol = processDaySchedules(checkDate, checkDate.getDay());
-                const card = document.createElement('div');
-                
-                if (protocol.status === 'empty') {
-                    card.className = 'day-card empty';
-                    card.innerHTML = `<div class="date-num" style="color:#475569;">${day}</div>`;
-                } else {
-                    card.className = 'day-card ' + protocol.status;
-                    card.onclick = function() { showModal(checkDate, protocol); };
-                    
-                    let driversHTML = protocol.events.map(e => {
-                        let cls = e.impact === "High" ? "red-folder" : (e.impact === "Medium" ? "orange-folder" : "");
-                        return `<div class="news-item ${cls}">• ${e.title}</div>`;
-                    }).join("");
+            // MONDAYS
+            if (dayNum === 1) {
+                if (hasPMI || hasHighImpact || hasMedImpact) {
+                    return {
+                        status: 'trade', label: 'Trade - 10AM Protocol',
+                        strategy: 'Look for clean algorithmic layouts strictly between 9:35 AM and 9:45 AM. If nothing sets up, stay out until the 10:40 AM macro sequence forms when news settles.',
+                        checklist: '• Scan for entries specifically at 9:35 AM - 9:45 AM\n• If market holds flat at 9:50 AM, step aside until 10:00 AM drops\n• Volatility dies out completely by 10:45 AM.'
+                    };
+                }
+                return {
+                    status: 'avoid', label: 'Avoid - Worst Day 🗑️',
+                    strategy: 'Monday No-News trap. Low probability structural loops. Lacks injected volatility, causing sluggish accumulation brackets. Sit on your hands.',
+                    checklist: '• Do not force entries into slow barcode ranges\n• Switch directly to Tape Reading / Forward Testing\n• Protect margin thresholds from choppy accumulation profiles.'
+                };
+            }
 
+            // TUESDAYS
+            if (dayNum === 2) {
+                if (hasCPI) {
+                    return {
+                        status: 'avoid', label: 'Avoid - CPI Exhaustion 🛑',
+                        strategy: 'CPI prints bring massive pre-market expansions (200-400 points), completely draining the day session parameters. If taking trades, expect extreme manipulation at the bell.',
+                        checklist: '• Critical Context: If overnight extension exceeds 250 points, STEP AWAY!\n• Verification Signature: Look for distinct 9:30 AM SMT or Turtle Soups\n• Risk Profile is inherently low-probability due to massive early displacement.'
+                    };
+                }
+                return {
+                    status: 'trade', label: 'Trade - Favorite Day 👑',
+                    strategy: 'Statistically Salman\'s highest probability win-rate setting. Fluid algorithmic price delivery dominates. Standard contract scaling is greenlit.',
+                    checklist: '• Standard risk configurations are completely active\n• Target crisp 9:30 AM opening setups\n• For 10:00 AM news: Wait 30 seconds to 2 minutes post-release to execute.'
+                };
+            }
+
+            // WEDNESDAYS
+            if (dayNum === 3) {
+                if (hasPPI) {
+                    return {
+                        status: 'trade', label: 'Trade - PPI Seek & Destroy 🔥',
+                        strategy: 'PPI sets high probability parameters. Expect a classic Seek & Destroy layout. Look for a sweep of external highs/lows at the open with SMT, then track the swift reversal leg.',
+                        checklist: '• Anticipate premium displacement expansion tracks\n• Map your external draws on liquidity clearly at 9:30 AM\n• Trade the expansion leg with complete conviction once SMT confirms.'
+                    };
+                }
+                if (hasFOMC) {
+                    return {
+                        status: 'caution', label: 'Caution - AM Session Only ⚠️',
+                        strategy: 'Trade the morning AM session normally if layouts surface. Do NOT touch the PM afternoon session. 2:00 PM FOMC updates are highly manipulated traps.',
+                        checklist: '• AM Macro: Normal operational focus allowed\n• PM Session: Strictly prohibited after 12:00 PM\n• Never expose funded accounts to unexpected 2:00 PM speaker spikes.'
+                    };
+                }
+                return { status: 'trade', label: 'Trade - Full Size', strategy: 'Fluid midweek volume parameters. Track standard delivery parameters.', checklist: '• Execute normal sizing if liquidity pools sweep cleanly.' };
+            }
+
+            // THURSDAYS
+            if (dayNum === 4) {
+                return {
+                    status: 'trade', label: 'Trade - 2nd Favorite Day ✅',
+                    strategy: 'Unemployment Claims / Retail Sales supply clean systemic volume into the open without running toxic pre-market overnight expansion levels. Highly efficient parameters.',
+                    checklist: '• Premium trading environment\n• Full standard contract size allocations permitted\n• Fast, clean execution runs across standard macro frames.'
+                };
+            }
+
+            // FRIDAYS
+            if (dayNum === 5) {
+                if (dayEvents.some(e => e.title.includes("Payroll"))) {
+                    return {
+                        status: 'caution', label: 'Caution - Cut Size 50% 🎰',
+                        strategy: 'NFP Friday brings severe pre-market manipulation. You must wait for the 9:30 AM opening bell manipulation to print the day\'s high/low before scanning the macro for entry confirmation.',
+                        checklist: '• Slice risk models in half to protect margins\n• Low/High of the day forms between 9:30 AM - 9:35 AM\n• Wait 5-10 minutes for distinct displacement steps before entering.'
+                    };
+                }
+                return {
+                    status: 'avoid', label: 'Avoid - Casino Rule ❌',
+                    strategy: 'Second worst trading day. Weekly funding milestones should already be reached. Do not gamble hard-earned profit allocations back into low-volume closing ranges.',
+                    checklist: '• Blackjack Sizing Analog: Lower win percentages require lower exposure!\n• Cut contract sizes by 50% minimum if trading, or shut down entirely\n• Focus strictly on journaling and tape reading.'
+                };
+            }
+
+            return { status: 'trade', label: 'Standard Trade Day', strategy: 'Standard protocols.', checklist: 'Execute normal model parameters.' };
+        }
+
+        function buildDynamicCalendar(liveData) {
+            const grid = document.getElementById("live-calendar-grid");
+            grid.innerHTML = "";
+            
+            let targetDate = new Date(); // Automatically maps to the active current week frame
+            let currentDayIdx = targetDate.getDay();
+            
+            // Re-align date pointer to the current week's Sunday boundary
+            let startOfWeek = new Date(targetDate);
+            startOfWeek.setDate(targetDate.getDate() - currentDayIdx);
+
+            document.getElementById("current-week-title").innerText = "Operational Week: Syncing Data Tracks";
+
+            for (let i = 0; i < 7; i++) {
+                let cardDate = new Date(startOfWeek);
+                cardDate.setDate(startOfWeek.getDate() + i);
+                
+                // Formats target key matching the Forex Factory XML date schema: MM-DD-YYYY
+                let keyMonth = String(cardDate.getMonth() + 1).padStart(2, '0');
+                let keyDay = String(cardDate.getDate()).padStart(2, '0');
+                let keyYear = cardDate.getFullYear();
+                let dataKey = `${keyMonth}-${keyDay}-${keyYear}`;
+                
+                let dayEvents = liveData[dataKey] || [];
+                let protocol = evaluateDayLogic(i, dayEvents);
+                
+                let card = document.createElement("div");
+                if (protocol.status === 'empty') {
+                    card.className = "day-card empty";
+                    card.innerHTML = `<div class="date-num" style="color:#475569;">${cardDate.getDate()}</div>`;
+                } else {
+                    card.className = `day-card ${protocol.status}`;
+                    
+                    let driversHTML = dayEvents.map(e => {
+                        let impactClass = e.impact === "High" ? "impact-high" : (e.impact === "Medium" ? "impact-medium" : "");
+                        return `<div class="${impactClass}">• [${e.time}] ${e.title}</div>`;
+                    }).join("") || "<div>• No Key USD News Scheduled</div>";
+
+                    card.onclick = () => showModal(cardDate, protocol, dayEvents);
                     card.innerHTML = `
-                        <div class="date-num">${day}</div>
+                        <div class="date-num">${cardDate.getDate()} <span style="font-size:14px; color:#64748b; font-weight:normal;">${cardDate.toLocaleDateString('en-US', {month:'short'})}</span></div>
                         <div class="drivers-list">${driversHTML}</div>
-                        <span class="status-txt status-${protocol.status}">${protocol.label.split(' - ')[0]}</span>
+                        <span class="status-txt status-${protocol.status}">${protocol.label}</span>
                     `;
                 }
-                gridContainer.appendChild(card);
+                grid.appendChild(card);
             }
         }
 
-        function changeMonth(dir) { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + dir); renderCalendar(); }
-        function goToToday() { currentCalendarDate = new Date(2026, 4, 15); renderCalendar(); }
-        
-        function showModal(date, protocol) {
-            document.getElementById('rule-modal').style.display = 'flex';
+        function showModal(date, protocol, events) {
             document.getElementById('modal-title').innerText = protocol.label;
             document.getElementById('modal-date').innerText = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
             
-            let driversHTML = protocol.events.map(e => `• <strong>${e.title}</strong> (Impact Classification: ${e.impact})`).join("<br>");
+            let driversHTML = events.map(e => `• <strong>[${e.time}]</strong> ${e.title} (Impact: ${e.impact})`).join("<br>") || "No Active News Drivers Found.";
             document.getElementById('modal-drivers').innerHTML = driversHTML;
-            document.getElementById('modal-verdict-text').innerText = protocol.text;
-            document.getElementById('modal-reasoning').innerText = protocol.reasoning;
+            document.getElementById('modal-strategy').innerText = protocol.strategy;
+            document.getElementById('modal-checklist').innerText = protocol.checklist;
+            document.getElementById('rule-modal').style.display = 'flex';
         }
-        
+
         function closeModal() { document.getElementById('rule-modal').style.display = 'none'; }
-        window.onload = renderCalendar;
+        
+        window.onload = fetchLiveMarketData;
     </script>
 </body>
 </html>

@@ -53,7 +53,7 @@
         }
         .day-card:hover { transform: scale(1.03); background: #2d3e5a; }
         
-        /* PROBABILITY GRIDS */
+        /* STATE STYLING */
         .high-p { border-left-color: #22c55e; background: linear-gradient(145deg, #1e293b, #132219); }
         .med-p { border-left-color: #eab308; background: linear-gradient(145deg, #1e293b, #242112); }
         .low-p { border-left-color: #ef4444; background: linear-gradient(145deg, #1e293b, #281818); }
@@ -66,8 +66,6 @@
         .status-low-p { color: #fca5a5; background: rgba(239, 68, 68, 0.2); }
         
         .drivers-list { font-size: 13px; color: #cbd5e1; margin-top: 12px; line-height: 1.5; background: rgba(15, 23, 42, 0.4); padding: 10px; border-radius: 8px; }
-        .news-tag { margin-bottom: 2px; }
-        .red-f { color: #fca5a5; font-weight: bold; }
         
         /* OVERLAY SYSTEM */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(8px); }
@@ -81,7 +79,7 @@
     <header>
         <div>
             <h1>Institutional Trading Protocol Dashboard</h1>
-            <div style="color: #94a3b8; font-size: 16px; margin-top: 6px;">Multi-Conditional Risk Engine — May 2026 Track</div>
+            <div style="color: #94a3b8; font-size: 16px; margin-top: 6px;">Dynamic Condition Engine — May 2026 Track</div>
         </div>
         <div>
             <button class="nav-btn" onclick="changeMonth(-1)">« Prev</button>
@@ -126,29 +124,28 @@
     </div>
 
     <script>
-        // Use clean numbers for stable JavaScript calendar initialization: Month '4' is May
         let currentCalendarDate = new Date(2026, 4, 15); 
 
-        // May 2026 Schedule parameters matching your active Forex Factory feed data perfectly
+        // May 2026 Database capturing the dynamic conditions across varying calendar profiles
         const scheduleData = {
             1: { type: "NFP", title: "Non-Farm Payrolls / Unemployment Rate", label: "Caution - NFP Setup", class: "med-p" },
             4: { type: "M_NO_NEWS", title: "No High-Impact USD News Scheduled", label: "Avoid - Low Prob", class: "low-p" },
-            5: { type: "T_NORMAL", title: "Standard Midweek Session Parameters", label: "High Prob - Trade Day", class: "high-p" },
+            5: { type: "T_NORMAL", title: "Standard Midweek Session Parameters — No Core Red Folders", label: "High Prob - Trade Day", class: "high-p" },
             6: { type: "W_NORMAL", title: "Standard Midweek Session Parameters", label: "High Prob - Trade Day", class: "high-p" },
             7: { type: "TH_CLAIMS", title: "USD: Unemployment Claims (8:30 AM)", label: "High Prob - Claims Day", class: "high-p" },
-            8: { type: "F_NO_NEWS", title: "No High-Impact USD News Scheduled", label: "Avoid - Casino Rule", class: "low-p" },
+            8: { type: "F_CAUTION", title: "USD session context — Trade with caution parameters active", label: "Caution - Reduce Size", class: "med-p" },
             11: { type: "M_PMI", title: "USD: Cleveland Fed Inflation Expectations (7:45 AM) / Existing Home Sales", label: "High Prob - 10AM Setup", class: "high-p" },
             12: { type: "T_CPI", title: "USD: Core CPI m/m / CPI m/m / CPI y/y (6:30 AM PST)", label: "Low Prob - CPI Exhaustion", class: "low-p" },
             13: { type: "W_PPI", title: "USD: Core PPI m/m / PPI m/m / Crude Oil (6:30 AM PST)", label: "High Prob - PPI S&D", class: "high-p" },
             14: { type: "TH_RETAIL", title: "USD: Core Retail Sales / Retail Sales m/m / Unemployment Claims", label: "High Prob - Retail Sales", class: "high-p" },
             15: { type: "F_PMI", title: "USD: Empire State Manufacturing (6:30 AM) / Industrial Production", label: "Avoid - Casino Rule", class: "low-p" },
             18: { type: "M_NO_NEWS", title: "No High-Impact USD News Scheduled", label: "Avoid - Low Prob", class: "low-p" },
-            19: { type: "T_JOLTS", title: "USD: ADP Employment / CB Consumer Confidence / JOLTS (10:00 AM)", label: "High Prob - 10AM Setup", class: "high-p" },
+            19: { type: "T_NORMAL", title: "USD: ADP Employment / CB Consumer Confidence / JOLTS (10:00 AM)", label: "High Prob - Trade Day", class: "high-p" },
             20: { type: "W_FOMC", title: "USD: FOMC Meeting Minutes (2:00 PM) / Crude Oil", label: "Caution - FOMC News", class: "med-p" },
             21: { type: "TH_CLAIMS", title: "USD: Unemployment Claims / Philly Fed Manufacturing", label: "High Prob - Claims Day", class: "high-p" },
             22: { type: "F_NO_NEWS", title: "No High-Impact USD News Scheduled", label: "Avoid - Casino Rule", class: "low-p" },
             25: { type: "M_HOLIDAY", title: "Memorial Day — US Bank Holiday — Desks Closed", label: "Avoid - Bank Holiday", class: "low-p" },
-            26: { type: "T_NORMAL", title: "Standard Midweek Session Parameters", label: "High Prob - Trade Day", class: "high-p" },
+            26: { type: "T_NORMAL", title: "Standard Midweek Session Parameters — No Core Red Folders", label: "High Prob - Trade Day", class: "high-p" },
             27: { type: "W_NORMAL", title: "Standard Midweek Session Parameters", label: "High Prob - Trade Day", class: "high-p" },
             28: { type: "TH_GDP", title: "USD: Core PCE Price Index / Prelim GDP q/q / Unemployment Claims", label: "High Prob - Heavy Drivers", class: "high-p" },
             29: { type: "F_PMI", title: "USD: Chicago PMI (9:45 AM) / Consumer Sentiment", label: "Avoid - Casino Rule", class: "low-p" }
@@ -159,16 +156,14 @@
             const month = dayDate.getMonth();
             const year = dayDate.getFullYear();
 
-            // Handle non-May 2026 generic templates safely
-            if (month !== 4 || year !== 2026) {
-                if (dayNum === 0 || dayNum === 6) return { status: 'empty', label: 'Weekend', news: 'Closed', strategy: 'N/A', reasoning: 'Closed.' };
-                if (dayNum === 1) return { status: 'low-p', label: 'Avoid', news: 'No News Monday', strategy: 'Tape Read Only', reasoning: 'Mondays with no news are structurally un-tradeable.' };
-                if (dayNum === 5) return { status: 'low-p', label: 'Avoid', news: 'Friday parameters', strategy: 'Tape Read Only', reasoning: 'Fridays carry lower win percentages.' };
-                return { status: 'high-p', label: 'High Prob', news: 'Standard Midweek Session', strategy: 'Risk Normal', reasoning: 'Fluid mid-week session conditions.' };
-            }
-
             if (dayNum === 0 || dayNum === 6) {
                 return { status: 'empty', label: 'Weekend', news: 'Market Closed', strategy: 'N/A', reasoning: 'No active institutional arrays operate over weekend breaks.' };
+            }
+
+            if (month !== 4 || year !== 2026) {
+                if (dayNum === 1) return { status: 'low-p', label: 'Avoid', news: 'No News Monday', strategy: 'Tape Read Only', reasoning: 'Mondays with no news are structurally low probability.' };
+                if (dayNum === 5) return { status: 'low-p', label: 'Avoid', news: 'Friday Close out', strategy: 'Tape Read Only', reasoning: 'Fridays carry lower win percentages structurally.' };
+                return { status: 'high-p', label: 'High Prob', news: 'Standard Midweek Session', strategy: 'Risk Normal', reasoning: 'Fluid mid-week session conditions apply.' };
             }
 
             const dayConfig = scheduleData[dayOfMonth] || { type: "MIDWEEK", title: "Standard Session Parameters", label: "High Prob - Trade Day", class: "high-p" };
@@ -185,7 +180,7 @@
                     return {
                         status: 'low-p', label: dayConfig.label, news: dayConfig.title,
                         strategy: 'Tape Read / Forward Test Only. Keep contract sizing off the table.',
-                        reasoning: 'Salman\'s Lecture Rules:\n"Monday, no news is nine out of 10 times going to be a low probability day in terms of PD arrays specifically inside of the macro. The reason why that is is because there\'s no injected volatility in the marketplace, which then allows slow price action, right? You have slow accumulation ranges.\n\nJust start tape reading Mondays and Fridays, and I promise you your win rate will dramatically go up. Protect yourself from taking losses on those days. Avoid Mondays as much as possible."'
+                        reasoning: 'Salman\'s Lecture Rules:\n"Monday, no news is nine out of 10 times going to be a low probability day in terms of PD arrays specifically inside of the macro. The reason why that is is because there\'s no injected volatility in the marketplace, which then allows slow price action, right? You have slow accumulation ranges. Avoid Mondays as much as possible."'
                     };
 
                 case "CPI":
@@ -193,7 +188,7 @@
                     return {
                         status: 'low-p', label: dayConfig.label, news: dayConfig.title,
                         strategy: 'Stand aside during pre-market expansion. Wait for the 9:30 AM open manipulation.',
-                        reasoning: 'Salman\'s Lecture Rules:\n"CPI specifically is a low probability day majority of the times because of how much displacement we see off the CPI candle. 8:30 New York time opens an hour before market open, and we\'ll see high displacement... talking two, three, four hundred points off of one candle. And that sets the track for the rest of the day.\n\nIf we expand more than 250 points pre-market in the overnight session, typically you want to step away that day. If you are going to trade CPI, typically it\'s a market open manipulation. 9:30 opening bell comes up to a high or a low, we then make that internal manipulation with SMT or turtle soup or an internal liquidity sweep, and then from there reverse."'
+                        reasoning: 'Salman\'s Lecture Rules:\n"CPI specifically is a low probability day majority of the times because of how much displacement we see off the CPI candle. 8:30 New York time opens an hour before market open, and we\'ll see high displacement... talking two, three, four hundred points off of one candle. And that sets the track for the rest of the day. If we expand more than 250 points pre-market in the overnight session, it\'s a low probability day. Look for 9:30 bell manipulation with SMT or turtle soup to reverse if you enter."'
                     };
 
                 case "PPI":
@@ -201,7 +196,7 @@
                     return {
                         status: 'high-p', label: dayConfig.label, news: dayConfig.title,
                         strategy: 'Trade Full Size — Look for Premium Seek & Destroy layouts at the external high/low.',
-                        reasoning: 'Salman\'s Lecture Rules:\n"PPI specifically tends to be high probability because it\'s the day before CPI [or following it]... so we\'re just generating liquidity, right? Enough liquidity for the large number displacement move coming.\n\nPPI is typically a manipulated day... it\'s a seek and destroy type of day specifically. We\'ll come up into an external high, make SMT or total soup during PPI and then just drop dramatically lower until we sweep an external low and vice versa. It\'s just kind of zigzag, but in that zigzag range specifically, we have a lot of displacement, right? So PPI, boom, really solid day. I like trading."'
+                        reasoning: 'Salman\'s Lecture Rules:\n"PPI specifically tends to be high probability because it\'s the day adjacent to CPI... so we\'re just generating liquidity, right? Enough liquidity for the large number displacement move coming. PPI is typically a manipulated day... it\'s a seek and destroy type of day specifically. We\'ll come up into an external high, make SMT or total soup during PPI and then just drop dramatically lower until we sweep an external low and vice versa."'
                     };
 
                 case "TH_CLAIMS":
@@ -220,25 +215,31 @@
                     return { status: 'high-p', label: dayConfig.label, news: dayConfig.title, strategy: currentStrat, reasoning: currentReas };
 
                 case "M_PMI":
-                case "T_JOLTS":
                     return {
                         status: 'high-p', label: dayConfig.label, news: dayConfig.title,
                         strategy: 'Hunt entries strictly at 9:35-9:45 AM macro. If flat, come back for 10:40 AM setups.',
-                        reasoning: 'Salman\'s Lecture Rules:\n"PMI/ISM/JOLTS/Consumer Confidence at 10am... you guys know the 10am protocol. Essentially what you\'re looking for is for 9:35 to 9:45 entries. If we don\'t get any entries, then 9:50 and onwards is off the table until 10am opens. Honestly, my best advice for these type of drivers is to just wait for 10:45 instead of trying to force something. After 10:45 volatility starts dying off and we get kind of some good paced price action that\'s very easily readable.\n\nLook for a market open manipulation at 9:30. If we see SMT or turtle soup at open, we don\'t need to wait for one at 10am—10am will be the distribution leg. If open is flat, look for the 10am news drop to create the manipulation leg."'
+                        reasoning: 'Salman\'s Lecture Rules:\n"PMI/ISM at 10am... you guys know the 10am protocol. Essentially what you\'re looking for is for 9:35 to 9:45 entries. If we don\'t get any entries, then 9:50 and onwards is off the table until 10am opens. Honestly, my best advice for these type of drivers is to just wait for 10:45 instead of trying to force something. After 10:45 volatility starts dying off and we get kind of some good paced price action that\'s very easily readable."'
                     };
 
                 case "W_FOMC":
                     return {
                         status: 'med-p', label: dayConfig.label, news: dayConfig.title,
                         strategy: 'AM Macro is tradeable. Strictly DO NOT TOUCH the PM afternoon session.',
-                        reasoning: 'Salman\'s Lecture Rules:\n"2PM FOMC minutes, you do not ever want to trade the PM because of how bad the price action will be. It\'s just gonna be manipulatable. Like, you\'re literally gonna get manipulated, right? So, look to not trade the 2PM FOMC minutes, and just look to trade the AM macro.\n\nPowell Speaker Context: Powell speaking I never, ever trade, never ever ever. Worst news driver on the planet... any unexpected word can cause a 100-300 point move in one minute candle. It causes irrationality that forces you to make irrational decisions on your funded accounts."'
+                        reasoning: 'Salman\'s Lecture Rules:\n"2PM FOMC minutes, you do not ever want to trade the PM because of how bad the price action will be. It\'s just gonna be manipulatable. Like, you\'re literally gonna get manipulated, right? So, look to not trade the 2PM FOMC minutes, and just look to trade the AM macro."'
                     };
 
                 case "NFP":
                     return {
                         status: 'med-p', label: dayConfig.label, news: dayConfig.title,
                         strategy: 'Cut Contract Sizing by 50% Minimum — Wait for 9:30-9:35 AM footprint',
-                        reasoning: 'Salman\'s Lecture Rules:\n"NFP days, same exact thing... you\'re gonna always wait for the manipulation to occur. 9 out of 10 times the manipulation happens at market open (9:30 to 9:35 in that general range). At the opening bell, you want to see SMT or internal liquidity sweep or an internal turtle soup happen, and then from there wait 5 to 10 minutes, get some confirmation of displacement either towards the upside or downside, then enter at the macro. If you are unexperienced, lower your sizing so you aren\'t all over the place with the volatility."'
+                        reasoning: 'Salman\'s Lecture Rules:\n"NFP days... you\'re gonna always wait for the manipulation to occur. 9 out of 10 times the manipulation happens at market open (9:30 to 9:35 in that general range). At the opening bell, you want to see SMT or internal liquidity sweep or an internal turtle soup happen, and then from there wait 5 to 10 minutes, get some confirmation of displacement either towards the upside or downside, then enter at the macro."'
+                    };
+
+                case "F_CAUTION":
+                    return {
+                        status: 'med-p', label: dayConfig.label, news: dayConfig.title,
+                        strategy: 'Trade with Caution Parameters Active — Lower overall contract sizing model.',
+                        reasoning: 'Salman\'s Lecture Rules:\n"If you decide that you want to trade specifically on Mondays and Fridays... be very patient and I would say just lower your overall contract sizing by almost half... Fridays are better than Mondays, specifically, and you\'ll see more longevity and decent trades on Fridays than Mondays."'
                     };
 
                 case "F_NO_NEWS":
@@ -246,14 +247,14 @@
                     return {
                         status: 'low-p', label: dayConfig.label, news: dayConfig.title,
                         strategy: 'Tape Read Only / Close Terminal early to preserve targets',
-                        reasoning: 'Salman\'s Lecture Rules:\n"I personally suggest you not trading Fridays, guys... just don\'t trade Fridays moving forward. Cut out Fridays as a whole to hit consistency faster.\n\nBlackjack Hand Analogy: Imagine I told you, hey, you\'re gonna have five blackjack hands, but on the hand on Monday and Friday, you\'re very less likely to win. Would you bet the same amount of money? No. You would bet less to protect yourself. If you win, okay cool, but if you lose, you are pissed because you could have avoided it because you knew the odds were substantially lower. Avoid giving hard earned weekly targets back to the casino."'
+                        reasoning: 'Salman\'s Lecture Rules:\n"I personally suggest you not trading Fridays, guys... just don\'t trade Fridays moving forward. Cut out Fridays as a whole to hit consistency faster. Blackjack Hand Analogy: If you know it\'s lower probability for you to win on Friday, you don\'t want to bet the same amount. Protect your hard earned weekly gains."'
                     };
 
-                default: // STANDARD HIGH PROBABILITY MIDWEEK DAYS (TUE / WED / THU NO RED NEWS)
+                default: // TUESDAY, WEDNESDAY, THURSDAY STANDARD CONDITIONS
                     return {
                         status: 'high-p', label: dayConfig.label, news: dayConfig.title,
-                        strategy: 'Fluid Session Parameters — Risk Normal Sizing Model',
-                        reasoning: 'Salman\'s Lecture Rules:\n"Tuesday, Wednesday, and Thursday are all three, if we have no news, the best days of the week to trade. They will allow so much clarity in your mind, and you\'ll see fluid price action specifically. My biggest winning days over the course of years of trading have been Tuesdays, Wednesdays, and Thursdays. Map out your standard draws on liquidity and hunt morning session macro footprints."'
+                        strategy: 'Fluid Session Parameters — Risk Normal Sizing Model allowed.',
+                        reasoning: 'Salman\'s Lecture Rules:\n"Tuesday, Wednesday, and Thursday are all three, if we have no news or news, the best days of the week to trade. They will allow so much clarity in your mind, and you\'ll see fluid price action specifically. My biggest winning days over the course of years of trading have been Tuesdays, Wednesdays, and Thursdays. Look for decent setups."'
                     };
             }
         }
@@ -288,7 +289,7 @@
                     card.className = 'day-card ' + protocol.status;
                     card.onclick = function() { showModal(checkDate, protocol); };
                     
-                    let displayNews = protocol.news.includes(' / ') ? protocol.news.split(' / ')[0] : protocol.news;
+                    let displayNews = protocol.news.includes(' — ') ? protocol.news.split(' — ')[0] : protocol.news;
                     if (displayNews.length > 45) displayNews = displayNews.substring(0, 42) + "...";
 
                     card.innerHTML = `

@@ -25,19 +25,17 @@
     <div id="calendar-container">Loading current market protocols...</div>
 
     <script>
-        // Mentors Exact Protocols mapping
         const evaluateDay = (dayName, events) => {
             const hasCPI = events.some(e => e.title.includes('CPI'));
             const hasPPI = events.some(e => e.title.includes('PPI'));
             const hasRetail = events.some(e => e.title.includes('Retail Sales'));
             const hasClaims = events.some(e => e.title.includes('Unemployment Claims'));
-            const hasFOMC = events.some(e => e.title.includes('FOMC') || e.title.includes('Powell'));
 
             if (dayName === 'Monday') {
                 return { status: 'avoid', label: 'Low Probable / Avoid', rule: 'Monday No-News Protocol: Low structural probability. Sit on your hands.' };
             }
             if (hasCPI) {
-                return { status: 'caution', label: 'Regular AM Session Protocol', rule: 'Tuesday CPI Drop: Watch the 6:30 AM displacement. Trade regular AM session with strict size control.' };
+                return { status: 'trade', label: 'Regular AM Session Protocol', rule: 'Tuesday CPI Drop: Watch the 6:30 AM displacement. Trade regular AM session with strict size control.' };
             }
             if (hasPPI) {
                 return { status: 'trade', label: 'High Probable Setup', rule: 'Wednesday PPI Premarket: Classic Seek & Destroy configuration. Premium environment.' };
@@ -55,7 +53,6 @@
         async function initCalendar() {
             const container = document.getElementById('calendar-container');
             
-            // Hardcoded structural check matching the actual May 2026 data sequence
             const weekDays = [
                 { name: 'Monday', date: 'May 11, 2026', events: [{ title: 'Existing Home Sales' }] },
                 { name: 'Tuesday', date: 'May 12, 2026', events: [{ title: 'Core CPI m/m' }, { title: 'CPI y/y' }] },
@@ -78,7 +75,7 @@
                         <h3 style="margin:0;">${day.name} (${day.date})</h3>
                         <span class="status-badge badge-${evaluation.status}">${evaluation.label}</span>
                     </div>
-                    <div class="meta"><strong>Key Drivers:</strong><br>${eventsList || 'No High Impact News'}</div>
+                    <div class="meta"><strong>Key Drivers:</strong><br>${eventsList}</div>
                     <div class="rule"><strong>Mentor Protocol:</strong> ${evaluation.rule}</div>
                 `;
                 container.appendChild(card);

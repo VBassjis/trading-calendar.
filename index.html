@@ -5,44 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Institutional Trading Calendar (2026-2029)</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: #0f172a; 
-            color: #f8fafc; 
-            padding: 40px; 
-            max-width: 1600px; 
-            margin: 0 auto; 
-        }
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid #334155; 
-            padding-bottom: 20px; 
-            margin-bottom: 30px; 
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; max-width: 1600px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 20px; margin-bottom: 30px; }
         h1 { color: #38bdf8; margin: 0; font-size: 32px; }
         .nav-btn { background: #38bdf8; color: #0f172a; border: none; padding: 12px 24px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-left: 10px; font-size: 16px; transition: 0.2s; }
         .nav-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(7, 1fr); 
-            gap: 25px; 
-        }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 25px; }
         .weekday { text-align: center; font-weight: bold; color: #94a3b8; padding: 15px; text-transform: uppercase; font-size: 16px; letter-spacing: 2px; }
-        .day-card { 
-            background: #1e293b; 
-            border-radius: 16px; 
-            padding: 25px; 
-            min-height: 220px; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            border-left: 10px solid #64748b; 
-            cursor: pointer; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease-in-out; 
-        }
+        .day-card { background: #1e293b; border-radius: 16px; padding: 25px; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; border-left: 10px solid #64748b; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s ease-in-out; }
         .day-card:hover { transform: scale(1.04); background: #2d3e5a; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
         .trade { border-left-color: #22c55e; background: linear-gradient(145deg, #1e293b, #14231a); }
         .caution { border-left-color: #eab308; background: linear-gradient(145deg, #1e293b, #242214); }
@@ -106,37 +76,18 @@
             const dayOfMonth = date.getDate();
             const weekIndex = Math.ceil(dayOfMonth / 7);
 
-            if (dayNum === 0 || dayNum === 6) {
-                return { status: 'empty', label: 'Weekend', drivers: 'Market Closed', rule: 'Market closed. Review weekly performance and prep for Sunday open.' };
-            }
-
-            if (dayNum === 1) {
-                return { status: 'avoid', label: 'Avoid / Low Probable', drivers: 'No High-Impact Drivers', rule: 'Monday Protocol: Typically lacks structural order flow. Low probability. Sit on your hands.' };
-            }
-
-            if (dayNum === 2 && weekIndex === 2) {
-                return { status: 'trade', label: 'Regular AM Session', drivers: 'USD: Core CPI / CPI y/y', rule: 'Tuesday CPI: High volatility at 6:30 AM. Wait for the initial expansion. Trade the regular AM session under normal size.' };
-            }
-
-            if (dayNum === 3 && weekIndex === 2) {
-                return { status: 'trade', label: 'High Probable Setup', drivers: 'USD: Core PPI / PPI m/m', rule: 'Wednesday PPI: Follows CPI displacement. Seek & Destroy configuration often present. Premium environment.' };
-            }
-
+            if (dayNum === 0 || dayNum === 6) return { status: 'empty', label: 'Weekend', drivers: 'Market Closed', rule: 'Market closed. Review weekly performance.' };
+            if (dayNum === 1) return { status: 'avoid', label: 'Avoid', drivers: 'No High-Impact Drivers', rule: 'Monday Protocol: Low probability. Sit on your hands.' };
+            if (dayNum === 2 && weekIndex === 2) return { status: 'trade', label: 'Regular AM Session', drivers: 'USD: Core CPI / CPI y/y', rule: 'Tuesday CPI: High volatility at 6:30 AM. Trade regular AM session.' };
+            if (dayNum === 3 && weekIndex === 2) return { status: 'trade', label: 'High Probable Setup', drivers: 'USD: Core PPI / PPI m/m', rule: 'Wednesday PPI: Seek & Destroy configuration. Premium environment.' };
             if (dayNum === 4) {
-                let drivers = 'USD: Unemployment Claims';
-                if (weekIndex === 2) drivers += ' / Retail Sales';
-                return { status: 'trade', label: 'High Probable Setup', drivers: drivers, rule: 'Thursday Protocol: High liquidity. Claims + Retail Sales provide clean expansion. Standard risk permitted.' };
+                let d = 'USD: Unemployment Claims';
+                if (weekIndex === 2) d += ' / Retail Sales';
+                return { status: 'trade', label: 'High Probable Setup', drivers: d, rule: 'Thursday Protocol: High liquidity. Standard risk permitted.' };
             }
-
-            if (dayNum === 5 && weekIndex === 1) {
-                return { status: 'caution', label: 'Caution / NFP', drivers: 'USD: Non-Farm Payrolls', rule: 'NFP Friday: Wait for 9:30 AM manipulation. Only trade if institutional footprints are clear.' };
-            }
-
-            if (dayNum === 5) {
-                return { status: 'avoid', label: 'Avoid / Close Out', drivers: 'Weekly Close', rule: 'Friday Protocol: Don’t give gains back to the casino. Close out early.' };
-            }
-
-            return { status: 'trade', label: 'Standard Trade Day', drivers: 'USD Medium Impact News', rule: 'Standard session parameters apply. Look for 8:30 AM or 10:00 AM setups.' };
+            if (dayNum === 5 && weekIndex === 1) return { status: 'caution', label: 'Caution / NFP', drivers: 'USD: Non-Farm Payrolls', rule: 'NFP Friday: Wait for 9:30 AM manipulation.' };
+            if (dayNum === 5) return { status: 'avoid', label: 'Avoid / Close Out', drivers: 'Weekly Close', rule: 'Friday Protocol: Close out early.' };
+            return { status: 'trade', label: 'Standard Trade Day', drivers: 'USD Medium Impact News', rule: 'Standard session parameters apply.' };
         }
 
         function renderCalendar() {
@@ -168,9 +119,7 @@
                 } else {
                     card.className = 'day-card ' + protocol.status;
                     card.onclick = function() { showModal(checkDate, protocol); };
-                    card.innerHTML = '<div class="date-num">' + day + '</div>' +
-                                     '<div class="drivers">' + protocol.drivers + '</div>' +
-                                     '<span class="status-txt status-' + protocol.status + '">' + protocol.label + '</span>';
+                    card.innerHTML = '<div class="date-num">' + day + '</div><div class="drivers">' + protocol.drivers + '</div><span class="status-txt status-' + protocol.status + '">' + protocol.label + '</span>';
                 }
                 gridContainer.appendChild(card);
             }

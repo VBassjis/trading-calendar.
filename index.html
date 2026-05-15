@@ -144,7 +144,7 @@
             const month = currentCalendarDate.getMonth();
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             
-            document.getElementById('month-year-title').innerText = `${monthNames[month]} ${year}`;
+            document.getElementById('month-year-title').innerText = monthNames[month] + " " + year;
             
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
@@ -152,7 +152,9 @@
             gridContainer.innerHTML = '';
 
             for (let i = 0; i < firstDayIndex; i++) {
-                gridContainer.appendChild(Object.assign(document.createElement('div'), {className: 'day-card empty'}));
+                let spacer = document.createElement('div');
+                spacer.className = 'day-card empty';
+                gridContainer.appendChild(spacer);
             }
 
             for (let day = 1; day <= totalDays; day++) {
@@ -162,15 +164,13 @@
                 
                 if (protocol.status === 'empty') {
                     card.className = 'day-card empty';
-                    card.innerHTML = `<div class="date-num" style="color:#475569;">${day}</div>`;
+                    card.innerHTML = '<div class="date-num" style="color:#475569;">' + day + '</div>';
                 } else {
-                    card.className = `day-card ${protocol.status}`;
-                    card.onclick = () => showModal(checkDate, protocol);
-                    card.innerHTML = `
-                        <div class="date-num">${day}</div>
-                        <div class="drivers">${protocol.drivers}</div>
-                        <span class="status-txt status-${protocol.status}">${protocol.label}</span>
-                    `;
+                    card.className = 'day-card ' + protocol.status;
+                    card.onclick = function() { showModal(checkDate, protocol); };
+                    card.innerHTML = '<div class="date-num">' + day + '</div>' +
+                                     '<div class="drivers">' + protocol.drivers + '</div>' +
+                                     '<span class="status-txt status-' + protocol.status + '">' + protocol.label + '</span>';
                 }
                 gridContainer.appendChild(card);
             }
